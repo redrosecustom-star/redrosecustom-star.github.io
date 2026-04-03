@@ -1,0 +1,12 @@
+{
+  "rewrites": [
+    {
+      "source": "/design",
+      "destination": "https://redrose-design-app.vercel.app/design"
+    },
+    {
+      "source": "/design/:path*",
+      "destination": "https://redrose-design-app.vercel.app/design/:path*"
+    }
+  ]
+}
