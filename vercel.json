@@ -7,6 +7,22 @@
     {
       "source": "/design/:path*",
       "destination": "https://redrose-design-app.vercel.app/design/:path*"
+    },
+    {
+      "source": "/custom-closets",
+      "destination": "https://redrose-design-app.vercel.app/design/custom-closets"
+    },
+    {
+      "source": "/custom-closets/:path*",
+      "destination": "https://redrose-design-app.vercel.app/design/custom-closets/:path*"
+    },
+    {
+      "source": "/sitemap.xml",
+      "destination": "https://redrose-design-app.vercel.app/design/sitemap.xml"
+    },
+    {
+      "source": "/robots.txt",
+      "destination": "https://redrose-design-app.vercel.app/design/robots.txt"
     }
   ]
 }
