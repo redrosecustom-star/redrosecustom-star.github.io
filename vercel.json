@@ -23,6 +23,10 @@
     {
       "source": "/robots.txt",
       "destination": "https://redrose-design-app.vercel.app/design/robots.txt"
+    },
+    {
+      "source": "/privacy-policy",
+      "destination": "https://redrose-design-app.vercel.app/design/privacy-policy"
     }
   ]
 }
