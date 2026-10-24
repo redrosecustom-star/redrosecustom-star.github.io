@@ -465,6 +465,12 @@
     }
     .f-group select option { background: #111111; color: var(--white); }
     .f-group textarea { resize: none; height: 96px; }
+    .f-consent {
+      display: flex; align-items: flex-start; gap: 10px; margin: 4px 0 16px;
+      font-size: 0.8rem; line-height: 1.45; color: rgba(255,255,255,0.6); cursor: pointer;
+    }
+    .f-consent input { width: 16px; height: 16px; margin-top: 2px; flex-shrink: 0; accent-color: var(--accent); }
+    .f-hp { position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden; }
 
     .f-submit {
       width: 100%; margin-top: 6px;
@@ -920,6 +926,8 @@
         </select>
       </div>
       <div class="f-group"><label>Anything else? (optional)</label><textarea name="notes" placeholder="Tell us a bit about your space or timeline"></textarea></div>
+      <label class="f-consent"><input type="checkbox" name="whatsappOptIn" value="yes" checked /> <span>Yes, Red Rose can message me on WhatsApp about my project. Reply STOP anytime to opt out.</span></label>
+      <div class="f-hp" aria-hidden="true"><label>Leave this empty<input type="text" name="_gotcha" tabindex="-1" autocomplete="off" /></label></div>
       <button type="submit" class="f-submit">Send Message</button>
     </form>
     <div class="success-msg" id="successMsg">
@@ -1022,7 +1030,9 @@
   })();
 </script>
 <script>
-// notify via API when the callback form is submitted (no mail app popup)
+// Callback form: saves the lead in the admin Leads CRM (which also starts the
+// WhatsApp follow-up when the box is ticked) and still emails it via Formspree
+// as a backup. Either one succeeding counts as sent.
 (function(){
   const form = document.getElementById('callbackForm');
   const success = document.getElementById('successMsg');
@@ -1030,25 +1040,29 @@
 
   form.addEventListener('submit', async e => {
     e.preventDefault();
+    const button = form.querySelector('button[type="submit"]');
+    if (button) button.disabled = true;
 
-    const data = new FormData(form);
-    data.append('_subject', 'New Lead - Website Callback');
+    const crmData = new FormData(form);
+    const mailData = new FormData(form);
+    mailData.delete('_gotcha');
+    mailData.append('_subject', 'New Lead - Website Callback');
 
-    try {
-      const res = await fetch('https://formspree.io/f/xwvnjagj', {
-        method: 'POST',
-        headers: {
-          'Accept': 'application/json'
-        },
-        body: data
-      });
+    const send = (url, body) =>
+      fetch(url, { method: 'POST', headers: { 'Accept': 'application/json' }, body })
+        .then(res => { if (!res.ok) throw new Error('Failed to send'); });
 
-      if (!res.ok) throw new Error('Failed to send');
+    const results = await Promise.allSettled([
+      send('/design/api/website-lead', crmData),
+      crmData.get('_gotcha') ? Promise.reject(new Error('skipped')) : send('https://formspree.io/f/xwvnjagj', mailData),
+    ]);
 
+    if (results.some(r => r.status === 'fulfilled')) {
       form.style.display = 'none';
       if (success) success.style.display = 'block';
-    } catch (err) {
-      alert('We could not send your request automatically. Please check your Formspree form settings and try again.');
+    } else {
+      if (button) button.disabled = false;
+      alert('We could not send your request. Please call us at (416) 258-1065.');
     }
   });
 })();
